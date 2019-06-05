@@ -5,6 +5,7 @@ function init(){
   const label = document.querySelector("label")
   const icon = document.querySelector("div.icon")
   const results = document.querySelector("div.results")
+  let resultIndex = 0;
 
   input.addEventListener('keydown', inputKeyDown)
   input.addEventListener('focus', updateLabel)
@@ -48,13 +49,21 @@ function init(){
   }
 
   function appendResults(res, query){
-    if (res[0].meta) {
-      console.log(res[0])
-      const syns = res[0].meta.syns[0].join(', ')
-      const def = res[0].shortdef[0]
-      const wordType = res[0].fl
-      let temp = templateResults(syns, def, query, wordType)
+    if (res[resultIndex].meta) {
+      const syns = res[resultIndex].meta.syns[0].join(', ')
+      const def = res[resultIndex].shortdef[0]
+      const wordType = res[resultIndex].fl
+      const word = res[resultIndex].hwi.hw
+      let temp = templateResults(syns, def, word, wordType)
       results.innerHTML = temp
+      if (res.length > 0) {
+        let more = templateMoreResults(res)
+        results.innerHTML += more
+        let moreResults = document.querySelector('.more-results')
+        moreResults.addEventListener('click', function(e){
+          showMoreResults(res, query)
+        })
+      }
     } else {
         let temp = templateNoMatch(query)
         results.innerHTML = temp
@@ -65,11 +74,34 @@ function init(){
     }
   }
 
+  function showMoreResults(res) {
+    results.innerHTML = ''
+
+    res.forEach(word => {
+      console.log(word)
+      let syns = word.meta.syns[0].slice(0,10).join(', ')
+      let def = word.shortdef[0]
+      let wordType = word.fl
+      let query = word.hwi.hw
+      let temp = templateResults(syns, def, query, wordType)
+
+      results.innerHTML += temp
+    })
+  }
+
   function templateNoMatch(query){
     return `
       <div>
         <h3>No matches for ${query}</h3>
         <p class='search-again'>Search again?</p>
+      </div>
+    `
+  }
+
+  function templateMoreResults(results){
+    return `
+      <div>
+        <p class='more-results'>Show more results</p>
       </div>
     `
   }
